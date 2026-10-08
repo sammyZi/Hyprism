@@ -28,7 +28,7 @@ public sealed class AppConfig
     public string? DarkProfile { get; set; }
     public bool AutoPerformanceMode { get; set; } = true;
     /// <summary>GitHub "owner/repo" whose Releases carry Hyprism-Setup-*.exe. Empty disables update checks.</summary>
-    public string? UpdateRepo { get; set; }
+    public string? UpdateRepo { get; set; } = "sammyZi/Hyprism";
     public bool AutoCheckUpdates { get; set; } = true;
     public DateTime LastUpdateCheck { get; set; }
     public bool SafeMode { get; set; } = true;

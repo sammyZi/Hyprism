@@ -21,7 +21,7 @@
     <TieredPGO>true</TieredPGO>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>1.2.4</Version>
+    <Version>1.2.5</Version>
     <!-- Unpackaged WinUI finds its compiled XAML/resources via "<exe name>.pri", so renaming Hyprism.exe crashed it
          at startup. MRT Core always also looks for "resources.pri", which survives any rename. -->
     <ProjectPriFileName>resources.pri</ProjectPriFileName>

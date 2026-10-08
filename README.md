@@ -20,7 +20,7 @@ well, and adds only the glue: one palette for everything, profiles, hotkeys, per
 
 ## Install
 
-Download `Hyprism-Setup-<version>-x64.exe` from Releases and run it. It installs for your account only (no admin
+Download `Hyprism-Setup-<version>-x64.exe` from [Releases](https://github.com/sammyZi/Hyprism/releases/latest) and run it. It installs for your account only (no admin
 needed), asks you to accept the Privacy Policy, and opens straight to Overview. Every tool is installed from its
 own page when you want it.
 
@@ -193,7 +193,7 @@ It then asks whether to restore your original Windows look (`--restore`) and whe
 (`--purge`). Apps Hyprism installed through winget stay installed. Test it safely with `unins000.exe /DRYRUN=1`,
 which only writes what it would do to `%TEMP%\hyprism-uninstall.log`.
 
-**Updates**: in *Settings > Updates*, set the GitHub `owner/repo` that publishes releases. Hyprism checks once a day,
+**Updates**: Hyprism checks this repo's [Releases](https://github.com/sammyZi/Hyprism/releases) once a day (change or clear the source in *Settings > Updates*),
 downloads `Hyprism-Setup-*-x64.exe`, verifies GitHub's SHA256 digest (it refuses to install an unverified file),
 scans it with your antivirus and runs it silently; the setup upgrades in place and relaunches Hyprism.
 

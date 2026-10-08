@@ -17,9 +17,10 @@ developers. Everything it stores stays on your PC.
    - Installing, updating or checking apps: Hyprism runs Microsoft's Windows Package Manager (winget),
      which contacts Microsoft and the download servers of the app being installed. Microsoft's privacy
      statement applies: https://privacy.microsoft.com
-   - Tools that are not in winget (ExplorerBlurMica, tacky-borders) and Hyprism updates (only if you set an
-     update source): Hyprism contacts GitHub (api.github.com, github.com). GitHub's privacy statement
-     applies: https://docs.github.com/site-policy/privacy-policies
+   - Tools that are not in winget (ExplorerBlurMica, tacky-borders), and Hyprism's own update check (once a
+     day, against github.com/sammyZi/Hyprism; turn it off or change it in Settings > Updates): Hyprism
+     contacts GitHub (api.github.com, github.com). GitHub's privacy statement applies:
+     https://docs.github.com/site-policy/privacy-policies
    - Wallpapers > Discover: when you open it or search, your search words and your screen resolution are sent
      to the wallpaper source you picked, and previews and the photos you choose are downloaded from it:
        * Wallhaven (wallhaven.cc), safe-for-work results only.            https://wallhaven.cc/privacy
