@@ -57,8 +57,8 @@ public sealed class WindowsTerminal : ModuleBase, IThemePreview
         Button("installFont", "Install selected Nerd Font", "Downloads it from ryanoasis/nerd-fonts via Oh My Posh.", "Colors and text"),
         Toggle("retro", "Retro CRT effect", false, "Scan lines and glow.", "Effects"),
         FilePick("shader", "Pixel shader (.hlsl)", "Custom shader effect.", "Effects"),
-        Toggle("ohMyPosh", "Oh My Posh prompt", false, "Adds the prompt to your PowerShell profiles.", "Prompt"),
-        Choice("ompTheme", "Prompt theme", "catppuccin_mocha", OmpThemes, group: "Prompt"),
+        Toggle("ohMyPosh", "Oh My Posh prompt", false, "Adds the prompt to PowerShell and Command Prompt (cmd gets it through Clink, installed with one UAC prompt).", "Prompt"),
+        Choice("ompTheme", "Prompt theme", "catppuccin_mocha", OmpThemes, "Used when Oh My Posh prompt is on.", "Prompt"),
     ];
 
     public string PreviewKey => "ompTheme";
@@ -130,7 +130,30 @@ public sealed class WindowsTerminal : ModuleBase, IThemePreview
         if (string.IsNullOrEmpty(shader)) d.Remove("experimental.pixelShaderPath"); else d["experimental.pixelShaderPath"] = shader;
         Write(path, json);
 
-        WritePromptBlock(s.Bool(this, "ohMyPosh") ? s.Str(this, "ompTheme") : null);
+        var theme = s.Bool(this, "ohMyPosh") ? s.Str(this, "ompTheme") : null;
+        WritePromptBlock(theme);
+        await WriteCmdPromptAsync(theme, ct);
+    }
+
+    static string? ClinkPath => Sys.FirstExisting(@"%ProgramFiles(x86)%\clink\clink.bat", @"%ProgramFiles%\clink\clink.bat");
+    // Clink loads every .lua script in its profile folder when cmd starts.
+    static string ClinkScript => Path.Combine(Sys.LocalAppData, "clink", "oh-my-posh.lua");
+
+    /// <summary>cmd has no prompt hook of its own; Clink adds one and Oh My Posh plugs into it (its documented setup).</summary>
+    async Task WriteCmdPromptAsync(string? theme, CancellationToken ct)
+    {
+        if (theme is null) { if (File.Exists(ClinkScript)) { Backup.BeforeWrite(Id, ClinkScript); File.Delete(ClinkScript); } return; }
+        if (ClinkPath is null && !await Sys.WingetInstallAsync("chrisant996.Clink", "winget", null, ct))
+            throw new InvalidOperationException("PowerShell has the prompt, but Clink (needed for Command Prompt) couldn't be installed.");
+        if (ClinkPath is { } clink)
+        {
+            // Clink's setup normally registers autorun (load into every cmd window); do it per-user only if it didn't.
+            var (_, shown) = await Sys.RunAsync("cmd.exe", $"/c \"\"{clink}\" autorun show\"", ct);
+            if (!shown.Contains("inject", StringComparison.OrdinalIgnoreCase))
+                await Sys.RunAsync("cmd.exe", $"/c \"\"{clink}\" autorun install -- --quiet\"", ct);
+        }
+        Directory.CreateDirectory(Path.GetDirectoryName(ClinkScript)!);
+        Write(ClinkScript, $"load(io.popen('oh-my-posh init cmd --config \"{ThemeConfig(theme).Replace('\\', '/')}\"'):read(\"*a\"))()\n");
     }
 
     static void UpsertScheme(JsonObject json, Palette p)
@@ -199,7 +222,7 @@ public sealed class WindowsTerminal : ModuleBase, IThemePreview
     public async Task<string> PreviewAnsiAsync(string theme, CancellationToken ct = default)
     {
         if (OmpPath is null) return "Install Oh My Posh (Install button above) to see live previews.";
-        var (_, output) = await Sys.RunAsync(Omp, $"print preview --config \"{ThemeConfig(theme)}\" --shell pwsh --escape=false --force", ct,
+        var (_, output) = await Sys.RunAsync(Omp, $"print preview --config \"{ThemeConfig(theme)}\" --shell pwsh --escape=false", ct,
             workDir: Sys.UserProfile);
         return output;
     }
