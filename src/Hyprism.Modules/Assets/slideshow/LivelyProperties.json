@@ -1,0 +1,5 @@
+{
+  "image": { "type": "textbox", "text": "Image file", "value": "" },
+  "transition": { "type": "textbox", "text": "Transition (fade, wipe, grow, slide, outer, random)", "value": "grow" },
+  "duration": { "type": "textbox", "text": "Transition length (ms)", "value": "900" }
+}

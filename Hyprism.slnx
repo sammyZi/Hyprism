@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Hyprism.App/Hyprism.App.csproj">
+      <Platform Project="x64" />
+    </Project>
+    <Project Path="src/Hyprism.Core/Hyprism.Core.csproj" />
+    <Project Path="src/Hyprism.Modules/Hyprism.Modules.csproj" />
+    <Project Path="src/Hyprism.Theming/Hyprism.Theming.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Hyprism.Checks/Hyprism.Checks.csproj" />
+  </Folder>
+</Solution>

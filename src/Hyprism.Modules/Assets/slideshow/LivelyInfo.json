@@ -1,0 +1,14 @@
+{
+  "AppVersion": "2.0.0.0",
+  "Title": "Hyprism Slideshow",
+  "Thumbnail": null,
+  "Preview": null,
+  "Desc": "Wallpaper transitions (fade, wipe, grow from cursor, slide) driven by Hyprism.",
+  "Author": "Hyprism",
+  "License": "MIT",
+  "Contact": null,
+  "Type": 1,
+  "FileName": "index.html",
+  "Arguments": null,
+  "IsAbsolutePath": false
+}

@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Hyprism slideshow</title>
+<!-- Hyprland/swww-style transitions for Lively. Hyprism drives it through `Livelycu setprop`:
+     image=<file name in ./images>, transition=<fade|wipe|grow|slide|outer|random>, duration=<ms>. -->
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
+  .layer {
+    position: absolute; inset: 0;
+    background-position: center; background-size: cover; background-repeat: no-repeat;
+    will-change: clip-path, opacity, transform;
+  }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+  const stage = document.getElementById('stage');
+  let transition = 'grow';
+  let duration = 900;
+  let cursor = { x: innerWidth / 2, y: innerHeight / 2 };
+  let current = null;
+
+  // Lively forwards mouse input to web wallpapers, so "grow" can start where the pointer is.
+  addEventListener('mousemove', e => { cursor = { x: e.clientX, y: e.clientY }; });
+
+  const easing = 'cubic-bezier(.65,0,.35,1)';
+  const radius = () => Math.hypot(innerWidth, innerHeight);
+
+  function frames(kind) {
+    switch (kind) {
+      case 'fade':  return [{ opacity: 0 }, { opacity: 1 }];
+      case 'wipe':  return [{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0 0 0)' }];
+      case 'slide': return [{ transform: 'translateX(100%)' }, { transform: 'translateX(0)' }];
+      case 'outer': return [{ clipPath: `circle(${radius()}px at 50% 50%)`, opacity: 0 }, { clipPath: `circle(${radius()}px at 50% 50%)`, opacity: 1 }];
+      case 'grow':
+      default:
+        return [
+          { clipPath: `circle(0px at ${cursor.x}px ${cursor.y}px)` },
+          { clipPath: `circle(${radius()}px at ${cursor.x}px ${cursor.y}px)` },
+        ];
+    }
+  }
+
+  function show(src) {
+    const next = document.createElement('div');
+    next.className = 'layer';
+    const img = new Image();
+    img.onload = () => {
+      next.style.backgroundImage = `url("${src}")`;
+      stage.appendChild(next);
+      let kind = transition;
+      if (kind === 'random') kind = ['fade', 'wipe', 'grow', 'slide'][Math.floor(Math.random() * 4)];
+      const anim = current ? next.animate(frames(kind), { duration, easing, fill: 'forwards' }) : null;
+      const prev = current;
+      current = next;
+      // Drop the old layer only once the new one fully covers it.
+      (anim ? anim.finished : Promise.resolve()).then(() => prev && prev.remove());
+    };
+    img.src = src;
+  }
+
+  // Called by Lively for every `setprop`.
+  function livelyPropertyListener(name, value) {
+    if (name === 'transition') transition = String(value);
+    else if (name === 'duration') duration = Number(value) || 900;
+    else if (name === 'image' && value) show('images/' + encodeURIComponent(String(value)));
+  }
+
+  // current.js (written by Hyprism) restores the last image after Lively restarts. fetch() can't read file:// URLs.
+  addEventListener('load', () => {
+    const s = window.HYPRISM || {};
+    if (s.transition) transition = s.transition;
+    if (s.image) show('images/' + encodeURIComponent(s.image));
+  });
+</script>
+<script src="current.js" onerror="void 0"></script>
+</body>
+</html>
