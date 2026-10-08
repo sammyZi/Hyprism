@@ -1,0 +1,25 @@
+# Opens a pull request at microsoft/winget-pkgs for every published release, so `winget install Hyprism`
+# and `winget upgrade Hyprism` pick up the new version once Microsoft merges it.
+# Needs a repository secret WINGET_TOKEN: a classic personal access token with the `public_repo` scope.
+# The PR is opened from the sammyZi/winget-pkgs fork.
+name: Publish to WinGet
+
+on:
+  release:
+    types: [released] # full releases only, not drafts or pre-releases
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to publish (e.g. v1.2.6)
+        required: true
+
+jobs:
+  winget:
+    runs-on: windows-latest
+    steps:
+      - uses: vedantmgoyal9/winget-releaser@f29ed1ffd34f91223a2aebaa71beaab0901ff9fd # v2
+        with:
+          identifier: sammyZi.Hyprism
+          installers-regex: '^Hyprism-Setup-.*-x64\.exe$'
+          release-tag: ${{ inputs.tag || github.event.release.tag_name }}
+          token: ${{ secrets.WINGET_TOKEN }}
