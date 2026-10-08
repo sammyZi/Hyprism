@@ -9,13 +9,14 @@ or launchers. It installs, configures, themes and updates mature open-source pro
 well, and adds only the glue: one palette for everything, profiles, hotkeys, performance mode, safe mode and backups.
 
 ![Overview](docs/screenshots/overview.png)
+<p align="center"><b>Overview</b> · your wallpaper, its palette, quick switches and every module's status</p>
 
 | | |
 |---|---|
-| ![Wallpapers: search Wallhaven, Openverse, NASA and Unsplash](docs/screenshots/wallpapers.png) | ![Colors: one palette for every app](docs/screenshots/colors.png) |
-| ![Glass Terminal module page](docs/screenshots/module-terminal.png) | ![Tiling with GlazeWM or komorebi](docs/screenshots/tiling.png) |
-| ![Profiles](docs/screenshots/profiles.png) | ![Advanced Tweaks (Windhawk mods)](docs/screenshots/advanced-tweaks.png) |
-| ![Settings and hotkeys](docs/screenshots/settings.png) | |
+| ![Wallpapers](docs/screenshots/wallpapers.png)<br>**Wallpapers** · search Wallhaven, Openverse, NASA and Unsplash; set as desktop, lock screen or both | ![Colors](docs/screenshots/colors.png)<br>**Colors** · one palette for every app, from your wallpaper or a starter theme |
+| ![Glass Terminal](docs/screenshots/module-terminal.png)<br>**Glass Terminal** · a module page: acrylic, background image, fonts, prompt themes | ![Tiling](docs/screenshots/tiling.png)<br>**Tiling** · GlazeWM or komorebi with gaps, workspaces and borders |
+| ![Profiles](docs/screenshots/profiles.png)<br>**Profiles** · save, switch and share whole setups as `.hyprism` files | ![Advanced Tweaks](docs/screenshots/advanced-tweaks.png)<br>**Advanced Tweaks** · curated Windhawk mods one click away |
+| ![Settings](docs/screenshots/settings.png)<br>**Settings** · start with Windows, theme, global hotkeys, updates | |
 
 ## Install
 
