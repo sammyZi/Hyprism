@@ -71,7 +71,21 @@ public static class Cleanup
 
         // 6. Settings, profiles and backups (only when asked: reinstalling keeps your rices).
         if (purge && Directory.Exists(Store.Root))
+        {
+            // The desktop wallpaper may be a file in this folder (a downloaded wallpaper, or the original one just
+            // restored from backups). Windows keeps only a path to it, so deleting it turns the desktop black at the
+            // next reload. Move it to Pictures first.
+            if (WindowsLook.GetWallpaper() is { } wp && Path.GetFullPath(wp).StartsWith(Store.Root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+                await StepSync("Keep your current wallpaper (moved to Pictures\\Hyprism wallpapers)", () =>
+                {
+                    var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Hyprism wallpapers");
+                    Directory.CreateDirectory(dir);
+                    var kept = Path.Combine(dir, Path.GetFileName(wp));
+                    File.Copy(wp, kept, overwrite: true);
+                    WindowsLook.SetWallpaper(kept);
+                });
             await StepSync("Delete Hyprism settings, profiles and backups", () => Directory.Delete(Store.Root, recursive: true));
+        }
 
         return log;
     }

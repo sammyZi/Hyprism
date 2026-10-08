@@ -84,6 +84,24 @@ public static class WindowsLook
         for (int i = 0; i < Keys.Length; i++)
             await Sys.RunAsync("reg", $"export \"{Keys[i]}\" \"{Path.Combine(LookDir, $"{i}.reg")}\" /y");
         if (GetWallpaper() is { } wp) File.Copy(wp, Path.Combine(LookDir, "wallpaper" + Path.GetExtension(wp)), true);
+        else if (File.Exists(CachedWallpaper)) File.Copy(CachedWallpaper, Path.Combine(LookDir, "wallpaper.jpg"), true);
+    }
+
+    /// <summary>Windows' own copy of the current wallpaper. It survives even when the original file is gone.</summary>
+    static string CachedWallpaper => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Microsoft\Windows\Themes\TranscodedWallpaper");
+
+    /// <summary>
+    /// If the wallpaper file Windows points at was deleted, the desktop turns black at the next reload (sign-in,
+    /// Explorer restart, display change). Puts Windows' cached copy back at that path. Returns true if it repaired.
+    /// </summary>
+    public static bool RepairMissingWallpaper()
+    {
+        using var k = Registry.CurrentUser.OpenSubKey(@"Control Panel\Desktop");
+        if (k?.GetValue("WallPaper") is not string { Length: > 0 } path || File.Exists(path) || !File.Exists(CachedWallpaper)) return false;
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.Copy(CachedWallpaper, path);
+        SetWallpaper(path);
+        return true;
     }
 
     public static async Task RestoreOriginalAsync()

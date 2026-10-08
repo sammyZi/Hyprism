@@ -68,7 +68,11 @@ public sealed partial class MainWindow : Window
         Navigate("home");
         // First launch: snapshot the stock Windows look before anything can change it, so "Restore original look"
         // and the uninstaller always have something to go back to. Runs once, in the background.
-        if (!WindowsLook.HasOriginalBackup) _ = Task.Run(WindowsLook.BackupOriginalAsync);
+        _ = Task.Run(async () =>
+        {
+            try { WindowsLook.RepairMissingWallpaper(); } catch { /* best effort */ }
+            if (!WindowsLook.HasOriginalBackup) await WindowsLook.BackupOriginalAsync();
+        });
         _ = CheckForUpdatesAsync();
     }
 
