@@ -17,7 +17,6 @@ public static class Program
         //   Hyprism.exe --uninstall [--restore] [--purge] [--dry-run]
         if (args.Contains("--uninstall")) return RunCleanup(args);
 
-        try { Hyprism.Core.Sys.RemoveBrokenUserFonts(); } catch { /* never block startup */ }
         WinRT.ComWrappersSupport.InitializeComWrappers();
         var main = AppInstance.FindOrRegisterForKey("Hyprism");
         if (!main.IsCurrent)
