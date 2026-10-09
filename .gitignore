@@ -7,3 +7,4 @@ dist/
 installer/Output/
 # Official upstream sources, cloned for reference only (never built or linked into Hyprism)
 .upstream/
+real-state.txt
