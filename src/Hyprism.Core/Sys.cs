@@ -154,6 +154,29 @@ public static partial class Sys
         finally { ReleaseDC(IntPtr.Zero, hdc); }
     }
 
+    /// <summary>
+    /// Removes per-user font registrations whose file was deleted (left behind by an uninstaller). WinUI's text
+    /// fallback trips over them and the whole app dies with DWRITE_E_FILENOTFOUND (0x88985003), so Hyprism repairs
+    /// this before showing any UI. Only HKCU entries with a missing file are touched; the entry is useless anyway.
+    /// </summary>
+    public static List<string> RemoveBrokenUserFonts()
+    {
+        var removed = new List<string>();
+        var userFonts = Path.Combine(LocalAppData, "Microsoft", "Windows", "Fonts");
+        using var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows NT\CurrentVersion\Fonts", writable: true);
+        foreach (var name in key?.GetValueNames() ?? [])
+        {
+            if (key!.GetValue(name) is not string { Length: > 0 } file) continue;
+            var path = Path.IsPathRooted(file) ? file : Path.Combine(userFonts, file);
+            if (File.Exists(path)) continue;
+            key.DeleteValue(name, throwOnMissingValue: false);
+            removed.Add(name);
+        }
+        if (removed.Count > 0) SendMessageTimeout(new IntPtr(0xFFFF), 0x001D /* WM_FONTCHANGE */, 0, 0, 0x0002, 1000, out _);
+        return removed;
+    }
+    [DllImport("user32.dll")] static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint msg, nint wParam, nint lParam, uint flags, uint timeout, out nint result);
+
     /// <summary>First existing path, with environment variables expanded.</summary>
     public static string? FirstExisting(params string[] candidates) =>
         candidates.Select(Environment.ExpandEnvironmentVariables).FirstOrDefault(File.Exists);
