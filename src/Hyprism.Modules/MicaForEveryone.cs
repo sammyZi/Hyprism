@@ -17,6 +17,30 @@ public sealed class MicaForEveryone : ModuleBase
     protected override string ProcessName => "MicaForEveryone";
     protected override string StartMenuName => "Mica For Everyone";
 
+    /// <summary>
+    /// winget can't install this one: its listing depends on "Microsoft.WindowsAppRuntime.2.1", an ID winget doesn't
+    /// have ("No matches", 0x8A150104), and skipping that, Windows streams the MSIX from GitHub and times out
+    /// (0x80072EE2). So: the runtime it needs (published as Microsoft.WindowsAppRuntime.2) from winget, then the
+    /// official bundle from the GitHub release, SHA256- and antivirus-checked, installed from disk.
+    /// </summary>
+    public override async Task InstallAsync(IProgress<string>? log = null, CancellationToken ct = default)
+    {
+        if (!await Sys.WingetInstallAsync("Microsoft.WindowsAppRuntime.2", "winget", log, ct))
+            throw new InvalidOperationException("Couldn't install the Windows App Runtime that Mica For Everyone needs. Open Details below for what went wrong.");
+        var dir = Path.Combine(Path.GetTempPath(), $"hyprism-mfe-{Guid.NewGuid():N}");
+        try
+        {
+            await Sys.InstallGitHubReleaseAsync(Repo, @"^bundle\.msixbundle$", dir, log, ct);
+            if (ProcessName is not null) Sys.Kill(ProcessName);
+            log?.Report("Installing Mica For Everyone…");
+            var (exit, output) = await Sys.RunAsync("powershell.exe",
+                $"-NoProfile -Command \"Add-AppxPackage -Path '{Path.Combine(dir, "bundle.msixbundle")}' -ForceApplicationShutdown\"", ct, onLine: l => log?.Report(l));
+            Sys.ForgetWingetStatus(WingetId);
+            if (exit != 0) throw new InvalidOperationException($"Windows couldn't install the Mica For Everyone package: {output.Trim()}");
+        }
+        finally { try { Directory.Delete(dir, true); } catch { } }
+    }
+
     // Values of MicaForEveryone.Models.BackdropType / TitleBarColorMode / CornerPreference.
     static readonly string[] Backdrops = ["Default", "None", "Mica", "Acrylic", "MicaAlt"];
     static readonly string[] TitleBars = ["Default", "Light", "Dark", "System"];

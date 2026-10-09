@@ -281,6 +281,7 @@ public static partial class Sys
     {
         0x80070020 or 0x80070021 => " (a file was in use by another program, often an antivirus scan or another installer)",
         0x8A150014 => " (no installer for this PC)",
+        0x8A150104 => " (the package lists a dependency winget can't find; a problem in its winget listing)",
         0x8A150011 => " (the installer's hash didn't match; try again later)",
         0x8A150008 or 0x8A15000F => " (download failed; check your connection)",
         0x80073D02 => " (the app is running; close it and retry)",
