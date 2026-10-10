@@ -44,7 +44,7 @@ public sealed class SettingsPage : PageBase
         var safe = new ToggleSwitch { IsOn = c.SafeMode };
         safe.Toggled += (_, _) => { c.SafeMode = safe.IsOn; Store.Save(); };
         Cards(
-            new SettingsCard { Header = "Automatic performance mode", Description = "On battery or while a fullscreen game runs: pause live wallpapers and turn blur off.", HeaderIcon = Ui.Icon(""), Content = perf },
+            new SettingsCard { Header = "Automatic performance mode", Description = "On battery or while any app runs fullscreen (games, videos, presentations): pause live wallpapers and turn blur off until it ends.", HeaderIcon = Ui.Icon(""), Content = perf },
             new SettingsCard { Header = "Safe mode", Description = "If Explorer crashes repeatedly after a change, undo it and tell you.", HeaderIcon = Ui.Icon(""), Content = safe });
 
         Section("Backup");

@@ -245,6 +245,7 @@ public static class Hub
         if (PerformanceOn == on) return;
         PerformanceOn = on;
         performanceAuto = on && auto;
+        Store.Config.EffectsSuspended = on; Store.Save();
         await SetEffectsAsync(!on, !on);
         Notify?.Invoke(on ? "Performance mode on: live wallpapers paused, blur off" : "Performance mode off");
     }
@@ -253,6 +254,17 @@ public static class Hub
     {
         await Sys.OffUiThread();
         if (Modules.OfType<IToggleable>().FirstOrDefault() is { } t) await t.ToggleAsync();
+    }
+
+    /// <summary>
+    /// Performance mode writes "no blur" into the apps' own configs (Terminal: opaque, no acrylic). If Hyprism closed
+    /// before it ended, they stayed that way while Hyprism showed them as on. Called at startup to put effects back.
+    /// </summary>
+    public static async Task RestoreSuspendedEffectsAsync()
+    {
+        if (!Store.Config.EffectsSuspended) return;
+        Store.Config.EffectsSuspended = false; Store.Save();
+        await SetEffectsAsync(true, true); // the next auto check turns performance mode on again if still needed
     }
 
     /// <summary>Polled by the app every few seconds: battery or a fullscreen game turns performance mode on.</summary>

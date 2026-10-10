@@ -27,6 +27,8 @@ public sealed class AppConfig
     public string? LightProfile { get; set; }
     public string? DarkProfile { get; set; }
     public bool AutoPerformanceMode { get; set; } = true;
+    /// <summary>Performance mode turned effects off and hasn't turned them back on (e.g. Hyprism closed meanwhile).</summary>
+    public bool EffectsSuspended { get; set; }
     /// <summary>GitHub "owner/repo" whose Releases carry Hyprism-Setup-*.exe. Empty disables update checks.</summary>
     public string? UpdateRepo { get; set; } = "sammyZi/Hyprism";
     public bool AutoCheckUpdates { get; set; } = true;

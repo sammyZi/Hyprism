@@ -59,6 +59,7 @@ public sealed partial class MainWindow : Window
         perfTimer = DispatcherQueue.CreateTimer();
         perfTimer.Interval = TimeSpan.FromSeconds(5);
         perfTimer.Tick += async (_, _) => { try { await Hub.CheckAutoPerformanceAsync(); } catch { } };
+        _ = Task.Run(async () => { try { await Hub.RestoreSuspendedEffectsAsync(); } catch { } });
         perfTimer.Start();
 
         rotateTimer = DispatcherQueue.CreateTimer();
