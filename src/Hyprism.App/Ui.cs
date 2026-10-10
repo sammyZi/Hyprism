@@ -64,7 +64,7 @@ public static partial class Ui
     {
         var rtb = new RichTextBlock
         {
-            FontFamily = (FontFamily)Application.Current.Resources["MonoFont"], FontSize = fontSize, LineHeight = fontSize * 1.55,
+            FontFamily = (FontFamily)Application.Current.Resources["NerdFont"], FontSize = fontSize, LineHeight = fontSize * 1.55,
             TextWrapping = TextWrapping.NoWrap, TextTrimming = TextTrimming.Clip,
             // RichTextBlock selects text on press by default, which swallowed clicks meant for the tile around it.
             IsTextSelectionEnabled = false,

@@ -459,6 +459,7 @@ public static partial class Sys
     // ---------- GitHub Releases fallback ----------
 
     static readonly HttpClient Http = CreateHttp();
+    public static Task<string> GetStringAsync(string url, CancellationToken ct) => Http.GetStringAsync(url, ct);
     static HttpClient CreateHttp()
     {
         var h = new HttpClient { Timeout = TimeSpan.FromMinutes(5) };

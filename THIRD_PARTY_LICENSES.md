@@ -72,6 +72,7 @@ Queried anonymously (no API key). Hyprism downloads only the image you pick and 
 | Component | License | Notes |
 |---|---|---|
 | [Google Sans Flex](https://github.com/google/fonts/tree/main/ofl/googlesansflex) | SIL Open Font License 1.1 | `src/Hyprism.App/Assets/Fonts/GoogleSansFlex.ttf`; license text in `Assets/Fonts/OFL.txt`. Unmodified. |
+| [Symbols Nerd Font Mono](https://github.com/ryanoasis/nerd-fonts) v3.5.1 (`NerdFontsSymbolsOnly.zip`) | MIT (Nerd Fonts; individual icon sets keep their own permissive licenses) | `src/Hyprism.App/Assets/Fonts/SymbolsNerdFontMono-Regular.ttf`; license text in `Assets/Fonts/NerdFontsSymbols-LICENSE.txt`. Unmodified; used for icons in the prompt preview. |
 | [Windows App SDK](https://github.com/microsoft/WindowsAppSDK) | MIT | NuGet `Microsoft.WindowsAppSDK` (self-contained runtime) |
 | [Windows Community Toolkit](https://github.com/CommunityToolkit/Windows) | MIT | NuGet `CommunityToolkit.WinUI.Controls.SettingsControls` |
 | [H.NotifyIcon](https://github.com/HavenDV/H.NotifyIcon) | MIT | NuGet `H.NotifyIcon.WinUI` (tray icon) |

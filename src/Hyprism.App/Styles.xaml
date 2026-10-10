@@ -36,7 +36,9 @@
     <FontFamily x:Key="HyprismFont">ms-appx:///Assets/Fonts/GoogleSansFlex.ttf#Google Sans Flex</FontFamily>
     <FontFamily x:Key="ContentControlThemeFontFamily">ms-appx:///Assets/Fonts/GoogleSansFlex.ttf#Google Sans Flex</FontFamily>
     <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas</FontFamily>
-    <FontFamily x:Key="NerdFont">CaskaydiaCove Nerd Font, CaskaydiaCove NF, Cascadia Mono, Consolas</FontFamily>
+    <!-- Nerd Font icons come from the bundled symbols font, never from Windows' font fallback: a broken system font
+         registration (e.g. "Holo MDL2 Assets" left behind without its file) makes that fallback crash the whole app. -->
+    <FontFamily x:Key="NerdFont">Cascadia Mono, ms-appx:///Assets/Fonts/SymbolsNerdFontMono-Regular.ttf#Symbols Nerd Font Mono, Consolas</FontFamily>
 
     <!-- Type ramp. Slightly tighter and heavier than Segoe so the flex face reads well. -->
     <Style x:Key="PageTitleStyle" TargetType="TextBlock">

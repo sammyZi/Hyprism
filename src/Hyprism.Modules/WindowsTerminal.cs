@@ -102,10 +102,27 @@ public sealed class WindowsTerminal : ModuleBase, IThemePreview
         return Sys.IsFontInstalled(BuiltInFont) ? BuiltInFont : "Consolas";
     }
 
-    static string ThemeConfig(string theme)
+    /// <summary>
+    /// A local copy of the theme. Pointing the shell profile at the GitHub URL made every new PowerShell window
+    /// download it again (300 ms on a good connection, seconds on a slow one, and no prompt offline).
+    /// Downloaded once into %AppData%\Hyprism\omp-themes; the URL is only a fallback if that download fails.
+    /// </summary>
+    static async Task<string> ThemeConfigAsync(string theme, CancellationToken ct)
     {
-        var local = Path.Combine(Sys.LocalAppData, "Programs", "oh-my-posh", "themes", theme + ".omp.json");
-        return File.Exists(local) ? local : $"https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/{theme}.omp.json";
+        var bundled = Path.Combine(Sys.LocalAppData, "Programs", "oh-my-posh", "themes", theme + ".omp.json");
+        if (File.Exists(bundled)) return bundled;
+        var cached = Path.Combine(Store.Root, "omp-themes", theme + ".omp.json");
+        if (File.Exists(cached)) return cached;
+        var url = $"https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/{theme}.omp.json";
+        try
+        {
+            var json = await Sys.GetStringAsync(url, ct);
+            JsonNode.Parse(json); // a theme, not an error page
+            Directory.CreateDirectory(Path.GetDirectoryName(cached)!);
+            await File.WriteAllTextAsync(cached, json, ct);
+            return cached;
+        }
+        catch (Exception e) when (e is not OperationCanceledException) { return url; }
     }
 
     public override async Task ApplyAsync(JsonObject s, CancellationToken ct = default)
@@ -131,9 +148,9 @@ public sealed class WindowsTerminal : ModuleBase, IThemePreview
         if (string.IsNullOrEmpty(shader)) d.Remove("experimental.pixelShaderPath"); else d["experimental.pixelShaderPath"] = shader;
         Write(path, json);
 
-        var theme = s.Bool(this, "ohMyPosh") ? s.Str(this, "ompTheme") : null;
-        WritePromptBlock(theme);
-        await WriteCmdPromptAsync(theme, ct);
+        var config = s.Bool(this, "ohMyPosh") ? await ThemeConfigAsync(s.Str(this, "ompTheme"), ct) : null;
+        WritePromptBlock(config);
+        await WriteCmdPromptAsync(config, ct);
     }
 
     static string? ClinkPath => Sys.FirstExisting(@"%ProgramFiles(x86)%\clink\clink.bat", @"%ProgramFiles%\clink\clink.bat");
@@ -141,9 +158,9 @@ public sealed class WindowsTerminal : ModuleBase, IThemePreview
     static string ClinkScript => Path.Combine(Sys.LocalAppData, "clink", "oh-my-posh.lua");
 
     /// <summary>cmd has no prompt hook of its own; Clink adds one and Oh My Posh plugs into it (its documented setup).</summary>
-    async Task WriteCmdPromptAsync(string? theme, CancellationToken ct)
+    async Task WriteCmdPromptAsync(string? config, CancellationToken ct)
     {
-        if (theme is null) { if (File.Exists(ClinkScript)) { Backup.BeforeWrite(Id, ClinkScript); File.Delete(ClinkScript); } return; }
+        if (config is null) { if (File.Exists(ClinkScript)) { Backup.BeforeWrite(Id, ClinkScript); File.Delete(ClinkScript); } return; }
         if (ClinkPath is null) return; // installed only when asked (setupCmd): applies also run in the background
         if (ClinkPath is { } clink)
         {
@@ -153,7 +170,7 @@ public sealed class WindowsTerminal : ModuleBase, IThemePreview
                 await Sys.RunAsync("cmd.exe", $"/c \"\"{clink}\" autorun install -- --quiet\"", ct);
         }
         Directory.CreateDirectory(Path.GetDirectoryName(ClinkScript)!);
-        Write(ClinkScript, $"load(io.popen('oh-my-posh init cmd --config \"{ThemeConfig(theme).Replace('\\', '/')}\"'):read(\"*a\"))()\n");
+        Write(ClinkScript, $"load(io.popen('oh-my-posh init cmd --config \"{config.Replace('\\', '/')}\"'):read(\"*a\"))()\n");
     }
 
     static void UpsertScheme(JsonObject json, Palette p)
@@ -165,16 +182,16 @@ public sealed class WindowsTerminal : ModuleBase, IThemePreview
     }
 
     /// <summary>Adds or removes the Oh My Posh line in both Windows PowerShell and PowerShell 7 profiles.</summary>
-    void WritePromptBlock(string? theme)
+    void WritePromptBlock(string? config)
     {
         var docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
         foreach (var (dir, shell) in new[] { ("PowerShell", "pwsh"), ("WindowsPowerShell", "powershell") })
         {
             var profile = Path.Combine(docs, dir, "Microsoft.PowerShell_profile.ps1");
-            if (theme is null && !File.Exists(profile)) continue;
+            if (config is null && !File.Exists(profile)) continue;
             Backup.BeforeWrite(Id, profile);
-            Files.SetManagedBlock(profile, theme is null ? null
-                : $"oh-my-posh init {shell} --config '{ThemeConfig(theme)}' | Invoke-Expression");
+            Files.SetManagedBlock(profile, config is null ? null
+                : $"oh-my-posh init {shell} --config '{config}' | Invoke-Expression");
         }
     }
 
@@ -204,7 +221,7 @@ public sealed class WindowsTerminal : ModuleBase, IThemePreview
                 throw new InvalidOperationException("Clink wasn't installed (the administrator prompt may have been declined).");
             var s = CurrentSettings;
             if (!s.Bool(this, "ohMyPosh")) throw new InvalidOperationException("Clink is installed. Turn on Oh My Posh prompt and press Apply to see it in Command Prompt.");
-            await WriteCmdPromptAsync(s.Str(this, "ompTheme"), ct);
+            await WriteCmdPromptAsync(await ThemeConfigAsync(s.Str(this, "ompTheme"), ct), ct);
             return;
         }
         if (key != "installFont") return;
@@ -231,7 +248,7 @@ public sealed class WindowsTerminal : ModuleBase, IThemePreview
     public async Task<string> PreviewAnsiAsync(string theme, CancellationToken ct = default)
     {
         if (OmpPath is null) return "Install Oh My Posh (Install button above) to see live previews.";
-        var (_, output) = await Sys.RunAsync(Omp, $"print preview --config \"{ThemeConfig(theme)}\" --shell pwsh --escape=false", ct,
+        var (_, output) = await Sys.RunAsync(Omp, $"print preview --config \"{await ThemeConfigAsync(theme, ct)}\" --shell pwsh --escape=false", ct,
             workDir: Sys.UserProfile);
         return output;
     }
