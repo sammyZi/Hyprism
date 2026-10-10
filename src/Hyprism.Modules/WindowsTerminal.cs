@@ -57,8 +57,9 @@ public sealed class WindowsTerminal : ModuleBase, IThemePreview
         Button("installFont", "Install selected Nerd Font", "Downloads it from ryanoasis/nerd-fonts via Oh My Posh.", "Colors and text"),
         Toggle("retro", "Retro CRT effect", false, "Scan lines and glow.", "Effects"),
         FilePick("shader", "Pixel shader (.hlsl)", "Custom shader effect.", "Effects"),
-        Toggle("ohMyPosh", "Oh My Posh prompt", false, "Adds the prompt to PowerShell and Command Prompt (cmd gets it through Clink, installed with one UAC prompt).", "Prompt"),
+        Toggle("ohMyPosh", "Oh My Posh prompt", false, "Adds the prompt to PowerShell, and to Command Prompt once Clink is set up below.", "Prompt"),
         Choice("ompTheme", "Prompt theme", "catppuccin_mocha", OmpThemes, "Used when Oh My Posh prompt is on.", "Prompt"),
+        Button("setupCmd", "Use the prompt in Command Prompt too", "Installs Clink, which gives Command Prompt a prompt Oh My Posh can draw. Windows asks for administrator permission once.", "Prompt"),
     ];
 
     public string PreviewKey => "ompTheme";
@@ -143,8 +144,7 @@ public sealed class WindowsTerminal : ModuleBase, IThemePreview
     async Task WriteCmdPromptAsync(string? theme, CancellationToken ct)
     {
         if (theme is null) { if (File.Exists(ClinkScript)) { Backup.BeforeWrite(Id, ClinkScript); File.Delete(ClinkScript); } return; }
-        if (ClinkPath is null && !await Sys.WingetInstallAsync("chrisant996.Clink", "winget", null, ct))
-            throw new InvalidOperationException("PowerShell has the prompt, but Clink (needed for Command Prompt) couldn't be installed.");
+        if (ClinkPath is null) return; // installed only when asked (setupCmd): applies also run in the background
         if (ClinkPath is { } clink)
         {
             // Clink's setup normally registers autorun (load into every cmd window); do it per-user only if it didn't.
@@ -198,6 +198,15 @@ public sealed class WindowsTerminal : ModuleBase, IThemePreview
 
     public override async Task InvokeAsync(string key, CancellationToken ct = default)
     {
+        if (key == "setupCmd")
+        {
+            if (ClinkPath is null && !await Sys.WingetInstallAsync("chrisant996.Clink", "winget", null, ct))
+                throw new InvalidOperationException("Clink wasn't installed (the administrator prompt may have been declined).");
+            var s = CurrentSettings;
+            if (!s.Bool(this, "ohMyPosh")) throw new InvalidOperationException("Clink is installed. Turn on Oh My Posh prompt and press Apply to see it in Command Prompt.");
+            await WriteCmdPromptAsync(s.Str(this, "ompTheme"), ct);
+            return;
+        }
         if (key != "installFont") return;
         var face = CurrentSettings.Str(this, "font");
         if (!NerdFonts.TryGetValue(face, out var name)) throw new InvalidOperationException($"{face} is not a Nerd Font; nothing to install.");
